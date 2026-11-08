@@ -1,0 +1,1109 @@
+:Ngũ Giác Tranh Hùng - Game Bàn Cờ Ngũ Giác 5 Người Chơi
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Ngũ Giác Tranh Hùng - Board Game Triết Học Mác-Lênin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Roboto:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    
+    header {
+      background: #1e293b;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #334155;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo i {
+      font-size: 28px;
+      color: #f59e0b;
+    }
+
+    .logo h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .game-meta {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .timer-box {
+      background: #0f172a;
+      border: 1px solid #475569;
+      padding: 8px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .timer-box.warning {
+      border-color: #ef4444;
+      color: #ef4444;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .main-layout {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 65px);
+      position: relative;
+    }
+
+    /* Bảng tin bên trái */
+    .sidebar-left {
+      width: 320px;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .teams-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .team-card {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 12px 16px;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .team-card.active {
+      transform: translateX(6px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    .team-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .team-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .team-details .name {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .team-details .status {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .team-score {
+      font-size: 20px;
+      font-weight: 900;
+      color: #f59e0b;
+    }
+
+    /* Canvas Trò chơi ở Giữa */
+    .board-container {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    svg#game-board {
+      width: 100%;
+      height: 100%;
+      max-width: 850px;
+      max-height: 850px;
+    }
+
+    .node {
+      cursor: pointer;
+      transition: transform 0.2s, filter 0.2s;
+    }
+
+    .node:hover {
+      filter: brightness(1.2);
+    }
+
+    .node.selectable {
+      animation: bounce 1s infinite alternate;
+    }
+
+    @keyframes bounce {
+      from { transform: scale(1); filter: drop-shadow(0 0 6px #3b82f6); }
+      to { transform: scale(1.15); filter: drop-shadow(0 0 14px #60a5fa); }
+    }
+
+    /* Bảng tin bên phải */
+    .sidebar-right {
+      width: 320px;
+      background: #1e293b;
+      border-left: 1px solid #334155;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .log-box {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-item {
+      padding: 6px 8px;
+      border-radius: 4px;
+      background: #1e293b;
+      border-left: 3px solid #64748b;
+    }
+
+    /* Modal / Popups */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #f59e0b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .question-body {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #f8fafc;
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .option-btn {
+      background: #334155;
+      color: #fff;
+      border: 2px solid transparent;
+      padding: 14px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .option-btn:hover {
+      background: #475569;
+      border-color: #3b82f6;
+    }
+
+    .fill-input {
+      width: 100%;
+      padding: 14px;
+      background: #0f172a;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    .fill-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Đội màu sắc */
+    .color-team1 { background-color: #ef4444; border-color: #ef4444; }
+    .color-team2 { background-color: #3b82f6; border-color: #3b82f6; }
+    .color-team3 { background-color: #10b981; border-color: #10b981; }
+    .color-team4 { background-color: #f59e0b; border-color: #f59e0b; }
+    .color-team5 { background-color: #8b5cf6; border-color: #8b5cf6; }
+
+    .control-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .control-btn:hover { background: #2563eb; }
+
+    .legend-box {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-color { width: 14px; height: 14px; border-radius: 50%; }
+
+    /* Modal kết thúc game */
+    .winner-rank {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .rank-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: #0f172a;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header thanh công cụ -->
+  <header>
+    <div class="logo">
+      <i class="fa-solid fa-shapes"></i>
+      <h1>NGŨ GIÁC TRANH HÙNG</h1>
+    </div>
+
+    <div class="game-meta">
+      <div class="timer-box" id="turn-timer">
+        <i class="fa-solid fa-hourglass-half" style="color:#f59e0b"></i>
+        <span>Lượt: <span id="turn-sec">30</span>s</span>
+      </div>
+      <div class="timer-box" id="match-timer">
+        <i class="fa-solid fa-clock" style="color:#3b82f6"></i>
+        <span>Trận đấu: <span id="match-min">25:00</span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bố cục chính -->
+  <div class="main-layout">
+    
+    <!-- Sidebar Trái: Bảng xếp hạng 5 Đội -->
+    <div class="sidebar-left">
+      <div class="panel-title">
+        <i class="fa-solid fa-trophy"></i> Bảng Đội Chơi (5 Teams)
+      </div>
+      <div class="teams-list" id="teams-container">
+        <!-- Đội chơi render từ Javascript -->
+      </div>
+
+      <div class="panel-title" style="margin-top: 12px;">
+        <i class="fa-solid fa-map"></i> Chú Giải Ô
+      </div>
+      <div class="legend-box">
+        <div class="legend-item">
+          <div class="legend-color" style="background:#f59e0b;"></div>
+          <span>Ô Cam: Câu hỏi (+10 / -5 điểm)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#ffffff;"></div>
+          <span>Ô Trắng: Sự kiện Ngẫu nhiên</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background:#64748b;"></div>
+          <span>Ô Màu Đội: Phí dẫm vào -3 điểm</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="border: 2px dashed #38bdf8;"></div>
+          <span>Ô Viền Xanh Nhấp Nháy: Ô hợp lệ để di chuyển</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas Trò chơi ở Giữa -->
+    <div class="board-container">
+      <svg id="game-board" viewBox="0 0 800 800"></svg>
+    </div>
+
+    <!-- Sidebar Phải: Nhật ký trận đấu -->
+    <div class="sidebar-right">
+      <div class="panel-title">
+        <i class="fa-solid fa-scroll"></i> Diễn Biến Trận Đấu
+      </div>
+      <div class="log-box" id="game-log">
+        <div class="log-item">Chào mừng đến với "Ngũ Giác Tranh Hùng"! Các đội chuẩn bị xuất phát.</div>
+      </div>
+      <button class="control-btn" id="btn-skip-turn">
+        <i class="fa-solid fa-forward"></i> Bỏ Lượt Hết Giờ
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Modal Sự kiện / Câu hỏi -->
+  <div class="modal-overlay" id="action-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title-text">
+          <i class="fa-solid fa-circle-question"></i> Ô Câu Hỏi
+        </div>
+        <span style="font-size: 12px; color: #94a3b8;" id="modal-tag">Dạng: Trắc nghiệm</span>
+      </div>
+
+      <div class="question-body" id="modal-question-text">
+        Nội dung câu hỏi hiển thị tại đây...
+      </div>
+
+      <div id="modal-action-area">
+        <!-- Chứa các nút bấm lựa chọn hoặc ô nhập đục lỗ -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kết Thúc Game -->
+  <div class="modal-overlay" id="end-modal">
+    <div class="modal-card" style="text-align: center;">
+      <h2 style="font-size:28px; color:#f59e0b; margin-bottom: 8px;">KẾT THÚC TRẬN ĐẤU!</h2>
+      <p style="color:#94a3b8;" id="end-reason">Đã hết 25 phút thi đấu hoặc bàn cờ đã kín màu.</p>
+
+      <div class="winner-rank" id="final-rankings">
+        <!-- Bảng xếp hạng chung cuộc -->
+      </div>
+
+      <button class="submit-btn" onclick="location.reload()" style="margin-top:20px;">
+        <i class="fa-solid fa-rotate-right"></i> Chơi Chận Mới
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- 30 CÂU HỎI THEO ĐÚNG DỮ LIỆU ---
+    const QUESTIONS_DATA = [
+      // DẠNG 1: ĐỤC LỖ (10 câu)
+      { id: 1, type: 'fill', question: 'Sự vận động, phát triển của xã hội bắt đầu từ sự phát triển của ……., trước hết là sự biến đổi, phát triển của công cụ sản xuất và sự phát triển về tri thức, kinh nghiệm, kỹ năng của người lao động.', answer: 'lực lượng sản xuất' },
+      { id: 2, type: 'fill', question: 'Khi cơ sở hạ tầng biến đổi về chất dẫn đến sự biến đổi, phát triển căn bản (nhanh hay chậm, ít hoặc nhiều) của ……….. xã hội.', answer: 'kiến trúc thượng tầng' },
+      { id: 3, type: 'fill', question: '…………. là quan hệ khách quan, cơ bản, chi phối và quyết định mọi quan hệ xã hội, đồng thời là tiêu chuẩn quan trọng nhất để phân biệt bản chất các chế độ xã hội khác nhau.', answer: 'Quan hệ sản xuất' },
+      { id: 4, type: 'fill', question: 'Trong quy luật kinh tế cơ bản, lực lượng sản xuất đóng vai trò ……… đối với quan hệ sản xuất.', answer: 'quyết định' },
+      { id: 5, type: 'fill', question: 'Yếu tố động nhất, cách mạng nhất trong lực lượng sản xuất chính là ……… sản xuất.', answer: 'công cụ' },
+      { id: 6, type: 'fill', question: 'Tổng hợp toàn bộ những quan hệ sản xuất của một xã hội hợp thành ……… của xã hội đó.', answer: 'cơ sở hạ tầng' },
+      { id: 7, type: 'fill', question: 'Lực lượng sản xuất bao gồm tư liệu sản xuất và ……… lao động.', answer: 'người' },
+      { id: 8, type: 'fill', question: 'Tư liệu sản xuất bao gồm đối tượng lao động và ……… lao động.', answer: 'tư liệu' },
+      { id: 9, type: 'fill', question: 'Sự thay thế các hình thái kinh tế - xã hội trong lịch sử loài người diễn ra theo một quá trình lịch sử - ………', answer: 'tự nhiên' },
+      { id: 10, type: 'fill', question: 'Giai cấp thống trị sử dụng bộ máy ……… như một công cụ quan trọng trong kiến trúc thượng tầng để bảo vệ lợi ích kinh tế.', answer: 'nhà nước' },
+
+      // DẠNG 2: ĐÚNG / SAI (10 câu)
+      { id: 11, type: 'tf', question: 'Lịch sử xã hội loài người là một tiến trình nối tiếp nhau từ thấp đến cao của các hình thái kinh tế-xã hội vì hình thái kinh tế-xã hội cũ mất đi, hình thái kinh tế-xã hội mới, tiến bộ ra đời.', answer: true, exp: 'Đúng' },
+      { id: 12, type: 'tf', question: 'Hình thái kinh tế-xã hội Phong kiến vẫn phân chia giai cấp mạnh mẽ như hình thái kinh tế-xã hội Chiếm hữu nô lệ và dụng cụ lao động vô cùng hiện đại.', answer: false, exp: 'Sai. Nô lệ được giải phóng thành nông dân có động lực hơn, công cụ lao động thời phong kiến vẫn là thủ công thô sơ.' },
+      { id: 13, type: 'tf', question: 'Hình thái kinh tế-xã hội Tư bản chủ nghĩa có hệ thống kiến trúc thượng tầng đề cao quyền sở hữu tư nhân, tự do kinh doanh và cạnh tranh.', answer: true, exp: 'Đúng' },
+      { id: 14, type: 'tf', question: 'Hình thái kinh tế-xã hội Cộng sản nguyên thủy là hình thái kinh tế-xã hội kéo dài lâu nhất trong lịch sử loài người.', answer: true, exp: 'Đúng' },
+      { id: 15, type: 'tf', question: 'Hình thái kinh tế-xã hội Cộng sản chủ nghĩa, tư liệu sản xuất thuộc quyền sở hữu riêng của tư nhân.', answer: false, exp: 'Sai. Tư liệu sản xuất thuộc sở hữu chung của xã hội.' },
+      { id: 16, type: 'tf', question: 'Kiến trúc thượng tầng hoàn toàn thụ động và không có khả năng tác động trở lại cơ sở hạ tầng.', answer: false, exp: 'Sai. Kiến trúc thượng tầng có tính độc lập tương đối và tác động trở lại mạnh mẽ.' },
+      { id: 17, type: 'tf', question: 'Quan hệ sản xuất có thể đi trước, vượt quá xa trình độ phát triển của lực lượng sản xuất mà vẫn thúc đẩy sản xuất phát triển tốt.', answer: false, exp: 'Sai. QHSX phải phù hợp với trình độ phát triển của LLSX.' },
+      { id: 18, type: 'tf', question: 'Công cụ lao động là thước đo trình độ chinh phục tự nhiên của con người.', answer: true, exp: 'Đúng' },
+      { id: 19, type: 'tf', question: 'Khi cơ sở hạ tầng thay đổi thì sớm hay muộn kiến trúc thượng tầng cũng sẽ thay đổi theo.', answer: true, exp: 'Đúng' },
+      { id: 20, type: 'tf', question: 'Mọi quốc gia trên thế giới đều bắt buộc phải trải qua lần lượt tất cả 5 hình thái kinh tế - xã hội mà không được bỏ qua bất kỳ hình thái nào.', answer: false, exp: 'Sai. Tùy thuộc điều kiện lịch sử, quốc gia có thể bỏ qua một hoặc vài hình thái KT-XH.' },
+
+      // DẠNG 3: NHIỀU LỰA CHỌN (10 câu)
+      { id: 21, type: 'mc', question: 'Trong hình thái kinh tế – xã hội tư bản chủ nghĩa, vì sao công nhân phải bán sức lao động cho nhà tư bản?', options: ['A. Vì công nhân không được phép tham gia bất kỳ hoạt động kinh tế nào khác.', 'B. Vì công nhân không sở hữu đủ tư liệu sản xuất để tự tổ chức sản xuất độc lập và phải làm thuê để nhận tiền lương.', 'C. Vì nhà nước trực tiếp sở hữu toàn bộ nhà máy và bắt buộc mọi người phải làm thuê.', 'D. Vì công nhân không có khả năng sử dụng máy móc và công nghệ hiện đại.'], answer: 1 },
+      { id: 22, type: 'mc', question: 'Một địa chủ sở hữu nhiều ruộng đất, giao đất cho nông dân canh tác. Sau mỗi vụ mùa, nông dân phải nộp một phần sản phẩm cho địa chủ. Đây là đặc trưng của hình thái KT-XH nào?', options: ['A. Cộng sản nguyên thủy', 'B. Chiếm hữu nô lệ', 'C. Phong kiến', 'D. Tư bản chủ nghĩa'], answer: 2 },
+      { id: 23, type: 'mc', question: 'Một cộng đồng cùng sử dụng công cụ lao động, cùng sản xuất và chia sẻ thành quả, chưa có sự phân chia giai cấp đối kháng. Đây là đặc điểm của hình thái KT-XH nào?', options: ['A. Cộng sản nguyên thủy', 'B. Chiếm hữu nô lệ', 'C. Phong kiến', 'D. Tư bản chủ nghĩa'], answer: 0 },
+      { id: 24, type: 'mc', question: 'Trong xã hội phong kiến, vì sao nông dân thường phải phụ thuộc vào địa chủ?', options: ['A. Vì nông dân bị coi là tài sản thuộc sở hữu của địa chủ.', 'B. Vì nông dân không được phép tham gia hoạt động sản xuất nông nghiệp.', 'C. Vì địa chủ trực tiếp sở hữu toàn bộ sức lao động của nông dân.', 'D. Vì ruộng đất tập trung trong tay địa chủ, khiến nông dân phải thuê ruộng canh tác và nộp tô.'], answer: 3 },
+      { id: 25, type: 'mc', question: 'Trong xã hội chiếm hữu nô lệ, chủ nô sở hữu TLSX và nô lệ. Nhận định nào giải thích đúng nhất mối quan hệ giữa kinh tế và chính trị?', options: ['A. Nhà nước quyết định hoàn toàn hình thức sở hữu TLSX.', 'B. Nhà nước chỉ thực hiện chức năng hành chính.', 'C. Quan hệ sở hữu TLSX không có ảnh hưởng đến chính trị.', 'D. Cơ sở kinh tế tác động đến kiến trúc thượng tầng; nhà nước duy trì quan hệ kinh tế và lợi ích giai cấp.'], answer: 3 },
+      { id: 26, type: 'mc', question: 'Một nhà máy TBCN tăng thời gian làm việc của công nhân vượt quá thời gian cần thiết. Phần giá trị mới tạo ra trong thời gian đó thuộc về nhà tư bản. Khái niệm này là gì?', options: ['A. Địa tô phong kiến', 'B. Sở hữu chung', 'C. Giá trị thặng dư', 'D. Phân phối theo nhu cầu'], answer: 2 },
+      { id: 27, type: 'mc', question: 'Một xã hội đạt trình độ phát triển cao của LLSX và công hữu TLSX chủ yếu, phân phối theo mức đóng góp lao động. Mô tả này phù hợp với giai đoạn nào?', options: ['A. Chủ nghĩa xã hội (giai đoạn đầu của hình thái CSCN)', 'B. Chủ nghĩa cộng sản giai đoạn cao', 'C. Chủ nghĩa tư bản phát triển cao', 'D. Cộng sản nguyên thủy'], answer: 0 },
+      { id: 28, type: 'mc', question: 'Theo quan điểm duy vật lịch sử, đánh giá nào phù hợp nhất khi cho rằng "Chỉ cần thay đổi luật pháp là thay đổi hoàn toàn bản chất kinh tế xã hội"?', options: ['A. Đúng, vì KTTT quyết định hoàn toàn CSHT.', 'B. Đúng, vì pháp luật quyết định sự phát triển.', 'C. Sai, vì KTTT không có tác động nào đến CSHT.', 'D. Sai, vì CSHT giữ vai trò quyết định đối với KTTT, dù KTTT tác động trở lại.'], answer: 3 },
+      { id: 29, type: 'mc', question: 'Theo quy luật QHSX phù hợp với trình độ phát triển của LLSX, khi QHSX trở thành lực cản đối với LLSX thì điều gì xảy ra?', options: ['A. LLSX tự động biến mất', 'B. Xã hội không thay đổi', 'C. QHSX cần được cải biến hoặc thay thế', 'D. Con người quay lại hình thái cũ'], answer: 2 },
+      { id: 30, type: 'mc', question: 'Đâu là lập luận đầy đủ nhất chứng minh sự phát triển và thay thế các hình thái KT-XH là một quá trình lịch sử - tự nhiên?', options: ['A. Con người mong muốn xã hội thay đổi nên xã hội thay đổi.', 'B. Khoa học phát triển nên mọi hình thái tự biến mất.', 'C. Sự phát triển của LLSX tạo yêu cầu thay đổi QHSX; CSHT biến đổi kéo theo KTTT biến đổi theo các quy luật khách quan.', 'D. Các hình thái lần lượt thay thế theo trình tự cố định ở mọi quốc gia.'], answer: 2 }
+    ];
+
+    // --- CẤU HÌNH ĐỘI CHƠI ---
+    const TEAMS = [
+      { id: 1, name: 'Team 1 (Đỏ)', color: '#ef4444', class: 'color-team1', score: 0, currentNode: 0 },
+      { id: 2, name: 'Team 2 (Xanh D)', color: '#3b82f6', class: 'color-team2', score: 0, currentNode: 4 },
+      { id: 3, name: 'Team 3 (Xanh L)', color: '#10b981', class: 'color-team3', score: 0, currentNode: 8 },
+      { id: 4, name: 'Team 4 (Vàng)', color: '#f59e0b', class: 'color-team4', score: 0, currentNode: 12 },
+      { id: 5, name: 'Team 5 (Tím)', color: '#8b5cf6', class: 'color-team5', score: 0, currentNode: 16 }
+    ];
+
+    // --- KHỞI TẠO BÀN CỜ NGŨ GIÁC (31 Ô TRÒN TRÊN LƯỚI) ---
+    // Tạo 5 đỉnh ngoài (Spawn Points) + 2 lớp ngũ giác bên trong
+    let boardNodes = [];
+    let boardConnections = {};
+
+    function generatePentagonGraph() {
+      const centerX = 400, centerY = 400;
+      const radiusOuter = 340;
+      const radiusMid = 220;
+      const radiusInner = 110;
+
+      let nodes = [];
+      
+      // Lớp 1: 5 Góc ngoài cùng (Spawn Points của 5 Team) -> ID 0..4
+      for(let i=0; i<5; i++) {
+        let angle = (i * 72 - 90) * Math.PI / 180;
+        nodes.push({
+          id: i,
+          x: centerX + radiusOuter * Math.cos(angle),
+          y: centerY + radiusOuter * Math.sin(angle),
+          type: 'spawn',
+          teamSpawn: i + 1,
+          owner: i + 1, // Đã sở hữu sẵn bởi Đội xuất phát
+          qId: null
+        });
+      }
+
+      // Lớp 2: Ring giữa gồm 10 ô (5 đỉnh mid, 5 cạnh mid) -> ID 5..14
+      for(let i=0; i<10; i++) {
+        let angle = (i * 36 - 90) * Math.PI / 180;
+        let isCam = (i % 2 === 0);
+        nodes.push({
+          id: 5 + i,
+          x: centerX + radiusMid * Math.cos(angle),
+          y: centerY + radiusMid * Math.sin(angle),
+          type: isCam ? 'orange' : 'white',
+          owner: null,
+          qId: isCam ? getRandomQuestionId() : null
+        });
+      }
+
+      // Lớp 3: Ring trong gồm 5 ô -> ID 15..19
+      for(let i=0; i<5; i++) {
+        let angle = (i * 72 - 90) * Math.PI / 180;
+        let isCam = (i % 2 === 1);
+        nodes.push({
+          id: 15 + i,
+          x: centerX + radiusInner * Math.cos(angle),
+          y: centerY + radiusInner * Math.sin(angle),
+          type: isCam ? 'orange' : 'white',
+          owner: null,
+          qId: isCam ? getRandomQuestionId() : null
+        });
+      }
+
+      // Ô Trung Tâm -> ID 20
+      nodes.push({
+        id: 20,
+        x: centerX,
+        y: centerY,
+        type: 'white',
+        owner: null,
+        qId: null
+      });
+
+      // Tạo ma trận liên kết giữa các ô liền kề
+      let adj = {};
+      for(let i=0; i<=20; i++) adj[i] = [];
+
+      // Nối Lớp Outer (0..4) vào Lớp Mid
+      adj[0].push(5, 6, 14); adj[5].push(0); adj[6].push(0); adj[14].push(0);
+      adj[1].push(7, 6, 8);  adj[7].push(1); adj[6].push(1); adj[8].push(1);
+      adj[2].push(9, 8, 10); adj[9].push(2); adj[8].push(2); adj[10].push(2);
+      adj[3].push(11, 10, 12); adj[11].push(3); adj[10].push(3); adj[12].push(3);
+      adj[4].push(13, 12, 14); adj[13].push(4); adj[12].push(4); adj[14].push(4);
+
+      // Nối Vòng Mid (5..14)
+      for(let i=5; i<=14; i++) {
+        let next = i === 14 ? 5 : i + 1;
+        adj[i].push(next);
+        adj[next].push(i);
+      }
+
+      // Nối Mid vào Inner & Tâm
+      adj[5].push(15); adj[15].push(5);
+      adj[7].push(16); adj[16].push(7);
+      adj[9].push(17); adj[17].push(9);
+      adj[11].push(18); adj[18].push(11);
+      adj[13].push(19); adj[19].push(13);
+
+      // Nối Vòng Inner (15..19)
+      for(let i=15; i<=19; i++) {
+        let next = i === 19 ? 15 : i + 1;
+        adj[i].push(next);
+        adj[next].push(i);
+        adj[i].push(20);
+        adj[20].push(i);
+      }
+
+      // Loại bỏ trùng lặp trong adj
+      for(let k in adj) {
+        adj[k] = [...new Set(adj[k])];
+      }
+
+      boardNodes = nodes;
+      boardConnections = adj;
+    }
+
+    let usedQuestionIds = [];
+    function getRandomQuestionId() {
+      let pool = QUESTIONS_DATA.map(q => q.id).filter(id => !usedQuestionIds.includes(id));
+      if(pool.length === 0) pool = QUESTIONS_DATA.map(q => q.id);
+      let picked = pool[Math.floor(Math.random() * pool.length)];
+      usedQuestionIds.push(picked);
+      return picked;
+    }
+
+    // --- TRẠNG THÁI GAME ---
+    let currentTeamIdx = 0; // Đội 1 (idx 0) đi trước
+    let turnTimerSeconds = 30;
+    let turnTimerInterval = null;
+    let matchTimerSeconds = 25 * 60; // 25 phút
+    let matchTimerInterval = null;
+    let isGameOver = false;
+    let extraSteps = 0; // Thêm lượt nếu dẫm ô sự kiện
+
+    // --- RENDER BÀN CỜ SVG ---
+    function renderBoard() {
+      const svg = document.getElementById('game-board');
+      svg.innerHTML = '';
+
+      // 1. Vẽ các đường nối giữa ô liền kề
+      let drawnLines = new Set();
+      for(let u in boardConnections) {
+        boardConnections[u].forEach(v => {
+          let pairKey = [u, v].sort().join('-');
+          if(!drawnLines.has(pairKey)) {
+            drawnLines.add(pairKey);
+            let n1 = boardNodes[u];
+            let n2 = boardNodes[v];
+            let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', n1.x);
+            line.setAttribute('y1', n1.y);
+            line.setAttribute('x2', n2.x);
+            line.setAttribute('y2', n2.y);
+            line.setAttribute('stroke', '#334155');
+            line.setAttribute('stroke-width', '4');
+            svg.appendChild(line);
+          }
+        });
+      }
+
+      // 2. Tìm danh sách các ô hợp lệ để di chuyển cho Đội hiện tại
+      let activeTeam = TEAMS[currentTeamIdx];
+      let validNeighbors = boardConnections[activeTeam.currentNode];
+
+      // 3. Vẽ các Ô hình tròn
+      boardNodes.forEach(node => {
+        let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        group.setAttribute('class', 'node');
+        
+        let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', node.x);
+        circle.setAttribute('cy', node.y);
+        circle.setAttribute('r', '22');
+
+        // Xác định màu tô cho Ô
+        let fillColor = '#ffffff'; // Mặc định ô trắng
+        if(node.owner) {
+          fillColor = TEAMS.find(t => t.id === node.owner).color;
+        } else if(node.type === 'orange') {
+          fillColor = '#f59e0b'; // Ô cam câu hỏi
+        }
+
+        circle.setAttribute('fill', fillColor);
+        circle.setAttribute('stroke', '#1e293b');
+        circle.setAttribute('stroke-width', '3');
+
+        // Hiệu ứng gợi ý ô có thể bước tới
+        let isSelectable = validNeighbors.includes(node.id);
+        if(isSelectable) {
+          circle.setAttribute('stroke', '#38bdf8');
+          circle.setAttribute('stroke-width', '5');
+          circle.setAttribute('stroke-dasharray', '4');
+          group.classList.add('selectable');
+          group.onclick = () => handleMoveToNode(node.id);
+        }
+
+        group.appendChild(circle);
+
+        // Icon hoặc nhãn ô
+        if(node.type === 'orange' && !node.owner) {
+          let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', node.x);
+          text.setAttribute('y', node.y + 5);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('fill', '#fff');
+          text.setAttribute('font-weight', '900');
+          text.setAttribute('font-size', '14');
+          text.textContent = '?';
+          group.appendChild(text);
+        }
+
+        svg.appendChild(group);
+      });
+
+      // 4. Vẽ Quân cờ đại diện cho 5 Đội
+      TEAMS.forEach(team => {
+        let posNode = boardNodes[team.currentNode];
+        let token = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        token.setAttribute('cx', posNode.x);
+        token.setAttribute('cy', posNode.y);
+        token.setAttribute('r', '12');
+        token.setAttribute('fill', team.color);
+        token.setAttribute('stroke', '#ffffff');
+        token.setAttribute('stroke-width', '3');
+        token.setAttribute('style', 'filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));');
+        
+        // Thêm chữ số Đội
+        let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', posNode.x);
+        text.setAttribute('y', posNode.y + 4);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', '#fff');
+        text.setAttribute('font-weight', '900');
+        text.setAttribute('font-size', '11');
+        text.textContent = team.id;
+
+        svg.appendChild(token);
+        svg.appendChild(text);
+      });
+    }
+
+    // --- XỬ LÝ DI CHUYỂN TỚI Ô MỚI ---
+    function handleMoveToNode(targetNodeId) {
+      if(isGameOver) return;
+      clearInterval(turnTimerInterval);
+
+      let team = TEAMS[currentTeamIdx];
+      team.currentNode = targetNodeId;
+      let targetNode = boardNodes[targetNodeId];
+
+      addLog(`<b>${team.name}</b> đã di chuyển tới ô <b>#${targetNodeId}</b>.`);
+
+      // 1. Kiểm tra dẫm vào ô màu của Đội khác -> Nộp phí -3 điểm
+      if(targetNode.owner && targetNode.owner !== team.id) {
+        let ownerTeam = TEAMS.find(t => t.id === targetNode.owner);
+        team.score -= 3;
+        ownerTeam.score += 3;
+        addLog(`<span style="color:#ef4444;"><i class="fa-solid fa-coins"></i> ${team.name} dẫm vào ô của ${ownerTeam.name}! Nộp phí -3 điểm.</span>`);
+      }
+
+      // Tô màu ô cho đội đi vào (nếu chưa có chủ)
+      if(!targetNode.owner) {
+        targetNode.owner = team.id;
+        addLog(`<span style="color:${team.color};"><i class="fa-solid fa-flag"></i> ${team.name} đã chiếm đóng ô #${targetNodeId}!</span>`);
+      }
+
+      updateTeamsUI();
+
+      // 2. Kích hoạt sự kiện Ô Cam (Câu Hỏi) hoặc Ô Trắng (Sự Kiện Ngẫu Nhiên)
+      if(targetNode.type === 'orange') {
+        triggerQuestionModal(targetNode);
+      } else {
+        triggerRandomEventModal(targetNode);
+      }
+    }
+
+    // --- SỰ KIỆN Ô TRẮNG NGẪU NHIÊN ---
+    function triggerRandomEventModal(node) {
+      const events = [
+        { name: 'Kho Báu', desc: 'Đội bạn nhận được Kho báu!', scoreDelta: 4, action: 'treasure' },
+        { name: 'Ăn Thuế', desc: 'Đội bạn bị thu thuế địa phương!', scoreDelta: -3, action: 'tax' },
+        { name: 'Thêm Lượt', desc: 'Đội bạn được tặng thêm 1 bước đi ngay lập tức!', scoreDelta: 0, action: 'extra_turn' },
+        { name: 'Ô Lựa Chọn', desc: 'Bạn muốn trừ nửa điểm của đội đứng trước hay nhận +4 điểm?', scoreDelta: 0, action: 'choice' }
+      ];
+
+      let ev = events[Math.floor(Math.random() * events.length)];
+      let activeTeam = TEAMS[currentTeamIdx];
+
+      document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-dice"></i> Sự Kiện Ngẫu Nhiên: ${ev.name}`;
+      document.getElementById('modal-tag').textContent = 'Ô Trắng';
+      document.getElementById('modal-question-text').textContent = ev.desc;
+
+      const actionArea = document.getElementById('modal-action-area');
+      actionArea.innerHTML = '';
+
+      if(ev.action === 'treasure') {
+        activeTeam.score += 4;
+        addLog(`<span style="color:#10b981;">[Kho Báu] ${activeTeam.name} nhận +4 điểm!</span>`);
+        actionArea.innerHTML = `<button class="submit-btn" onclick="closeModalNextTurn()">Nhận +4 Điểm & Tiếp Tục</button>`;
+      } else if(ev.action === 'tax') {
+        activeTeam.score -= 3;
+        addLog(`<span style="color:#ef4444;">[Ăn Thuế] ${activeTeam.name} bị trừ -3 điểm!</span>`);
+        actionArea.innerHTML = `<button class="submit-btn" onclick="closeModalNextTurn()" style="background:#ef4444;">Đồng Ý Nộp Phí & Tiếp Tục</button>`;
+      } else if(ev.action === 'extra_turn') {
+        extraSteps = 1;
+        addLog(`<span style="color:#3b82f6;">[Thêm Lượt] ${activeTeam.name} được đi thêm 1 bước!</span>`);
+        actionArea.innerHTML = `<button class="submit-btn" onclick="closeModalNextTurn(true)">Đi Thêm 1 Bước</button>`;
+      } else if(ev.action === 'choice') {
+        // Tìm đội đứng trước trên lượt
+        let prevTeamIdx = (currentTeamIdx - 1 + TEAMS.length) % TEAMS.length;
+        let prevTeam = TEAMS[prevTeamIdx];
+
+        actionArea.innerHTML = `
+          <div style="display:flex; gap:12px; flex-direction:column;">
+            <button class="option-btn" onclick="handleChoiceOption('add')">+4 Điểm Cho Đội Nhà (${activeTeam.name})</button>
+            <button class="option-btn" onclick="handleChoiceOption('deduct', ${prevTeam.id})">Trừ Nửa Điểm Của Đội Trước (${prevTeam.name})</button>
+          </div>
+        `;
+      }
+
+      openModal();
+      updateTeamsUI();
+    }
+
+    window.handleChoiceOption = function(type, targetTeamId) {
+      let activeTeam = TEAMS[currentTeamIdx];
+      if(type === 'add') {
+        activeTeam.score += 4;
+        addLog(`[Lựa chọn] ${activeTeam.name} chọn nhận +4 điểm.`);
+      } else {
+        let prevTeam = TEAMS.find(t => t.id === targetTeamId);
+        let deductAmount = Math.floor(prevTeam.score / 2);
+        prevTeam.score -= deductAmount;
+        addLog(`[Lựa chọn] ${activeTeam.name} trừ ${deductAmount} điểm (nửa số điểm) của ${prevTeam.name}!`);
+      }
+      updateTeamsUI();
+      closeModalNextTurn();
+    };
+
+    // --- SỰ KIỆN Ô CAM (CÂU HỎI) ---
+    function triggerQuestionModal(node) {
+      let q = QUESTIONS_DATA.find(item => item.id === node.qId) || QUESTIONS_DATA[0];
+      let activeTeam = TEAMS[currentTeamIdx];
+
+      document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-circle-question"></i> Thử Thách Triết Học (Ô Cam)`;
+      document.getElementById('modal-tag').textContent = `Dạng: ${q.type === 'fill' ? 'Đục Lỗ' : q.type === 'tf' ? 'Đúng / Sai' : 'Trắc Nghiệm'}`;
+      document.getElementById('modal-question-text').innerHTML = `<b>Câu ${q.id}:</b> ${q.question}`;
+
+      const actionArea = document.getElementById('modal-action-area');
+      actionArea.innerHTML = '';
+
+      if(q.type === 'fill') {
+        actionArea.innerHTML = `
+          <input type="text" id="fill-answer" class="fill-input" placeholder="Nhập từ/cụm từ trả lời vào đây..." autocomplete="off">
+          <button class="submit-btn" onclick="submitAnswer('fill', ${q.id})">Gửi Đáp Án</button>
+        `;
+      } else if(q.type === 'tf') {
+        actionArea.innerHTML = `
+          <div style="display:flex; gap:16px;">
+            <button class="option-btn" style="flex:1; text-align:center;" onclick="submitAnswer('tf', ${q.id}, true)">ĐÚNG</button>
+            <button class="option-btn" style="flex:1; text-align:center;" onclick="submitAnswer('tf', ${q.id}, false)">SAI</button>
+          </div>
+        `;
+      } else if(q.type === 'mc') {
+        let html = '<div class="options-grid">';
+        q.options.forEach((opt, idx) => {
+          html += `<button class="option-btn" onclick="submitAnswer('mc', ${q.id}, ${idx})">${opt}</button>`;
+        });
+        html += '</div>';
+        actionArea.innerHTML = html;
+      }
+
+      openModal();
+    }
+
+    window.submitAnswer = function(type, qId, userAns) {
+      let q = QUESTIONS_DATA.find(item => item.id === qId);
+      let activeTeam = TEAMS[currentTeamIdx];
+      let isCorrect = false;
+
+      if(type === 'fill') {
+        let inputVal = document.getElementById('fill-answer').value.trim().toLowerCase();
+        let expected = q.answer.toLowerCase();
+        isCorrect = inputVal.includes(expected) || expected.includes(inputVal) && inputVal.length >= 3;
+      } else if(type === 'tf') {
+        isCorrect = (userAns === q.answer);
+      } else if(type === 'mc') {
+        isCorrect = (userAns === q.answer);
+      }
+
+      if(isCorrect) {
+        activeTeam.score += 10;
+        addLog(`<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-check"></i> CHÍNH XÁC! ${activeTeam.name} trả lời đúng (+10 điểm).</span>`);
+      } else {
+        activeTeam.score -= 5;
+        addLog(`<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-xmark"></i> SAI RỒI! ${activeTeam.name} bị trừ -5 điểm. (Câu hỏi có thể khiêu chiến lại lượt sau).</span>`);
+      }
+
+      updateTeamsUI();
+      closeModalNextTurn();
+    };
+
+    // --- ĐỔI LƯỢT CHƠI & TIMER ---
+    function nextTurn(keepSameTeam = false) {
+      checkEndConditions();
+      if(isGameOver) return;
+
+      if(!keepSameTeam) {
+        currentTeamIdx = (currentTeamIdx + 1) % TEAMS.length;
+      }
+
+      updateTeamsUI();
+      renderBoard();
+      startTurnTimer();
+    }
+
+    function startTurnTimer() {
+      clearInterval(turnTimerInterval);
+      turnTimerSeconds = 30;
+      document.getElementById('turn-sec').textContent = turnTimerSeconds;
+      document.getElementById('turn-timer').classList.remove('warning');
+
+      turnTimerInterval = setInterval(() => {
+        turnTimerSeconds--;
+        document.getElementById('turn-sec').textContent = turnTimerSeconds;
+
+        if(turnTimerSeconds <= 5) {
+          document.getElementById('turn-timer').classList.add('warning');
+        }
+
+        if(turnTimerSeconds <= 0) {
+          clearInterval(turnTimerInterval);
+          let team = TEAMS[currentTeamIdx];
+          addLog(`<span style="color:#f59e0b;">⏱ Lượt của ${team.name} đã hết 30 giây! Tự động chuyển lượt.</span>`);
+          nextTurn();
+        }
+      }, 1000);
+    }
+
+    function startMatchTimer() {
+      matchTimerInterval = setInterval(() => {
+        matchTimerSeconds--;
+        let min = Math.floor(matchTimerSeconds / 60);
+        let sec = matchTimerSeconds % 60;
+        document.getElementById('match-min').textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+        if(matchTimerSeconds <= 0) {
+          endGame('Hết 25 phút thi đấu chính thức!');
+        }
+      }, 1000);
+    }
+
+    function checkEndConditions() {
+      // Kiểm tra ô trắng còn lại
+      let unownedWhiteNodes = boardNodes.filter(n => n.type === 'white' && !n.owner);
+      if(unownedWhiteNodes.length === 0) {
+        endGame('Không còn ô trắng nào trên bàn cờ!');
+      }
+    }
+
+    function endGame(reason) {
+      isGameOver = true;
+      clearInterval(turnTimerInterval);
+      clearInterval(matchTimerInterval);
+
+      document.getElementById('end-reason').textContent = reason;
+      
+      // Sắp xếp thứ tự bảng xếp hạng
+      let sortedTeams = [...TEAMS].sort((a,b) => b.score - a.score);
+      let rankHtml = '';
+      sortedTeams.forEach((t, index) => {
+        rankHtml += `
+          <div class="rank-item" style="border-left: 4px solid ${t.color};">
+            <span>#${index+1} ${t.name}</span>
+            <span style="color:#f59e0b;">${t.score} điểm</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('final-rankings').innerHTML = rankHtml;
+      document.getElementById('end-modal').classList.add('show');
+    }
+
+    // --- GIAO DIỆN & TIỆN ÍCH ---
+    function updateTeamsUI() {
+      const container = document.getElementById('teams-container');
+      container.innerHTML = '';
+
+      TEAMS.forEach((team, idx) => {
+        let isActive = (idx === currentTeamIdx);
+        let card = document.createElement('div');
+        card.className = `team-card ${isActive ? 'active' : ''}`;
+        if(isActive) card.style.borderColor = team.color;
+
+        card.innerHTML = `
+          <div class="team-info">
+            <div class="team-badge" style="background:${team.color}">${team.id}</div>
+            <div class="team-details">
+              <div class="name">${team.name}</div>
+              <div class="status">${isActive ? 'Đang đến lượt' : 'Chờ...'}</div>
+            </div>
+          </div>
+          <div class="team-score">${team.score}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function addLog(text) {
+      const logBox = document.getElementById('game-log');
+      let item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = text;
+      logBox.appendChild(item);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function openModal() {
+      document.getElementById('action-modal').classList.add('show');
+    }
+
+    window.closeModalNextTurn = function(extraTurn = false) {
+      document.getElementById('action-modal').classList.remove('show');
+      nextTurn(extraTurn);
+    };
+
+    document.getElementById('btn-skip-turn').onclick = () => {
+      if(isGameOver) return;
+      addLog(`${TEAMS[currentTeamIdx].name} chủ động bỏ lượt.`);
+      nextTurn();
+    };
+
+    // --- KHỞI CHẠY TRÒ CHƠI ---
+    window.onload = function() {
+      generatePentagonGraph();
+      updateTeamsUI();
+      renderBoard();
+      startTurnTimer();
+      startMatchTimer();
+    };
+  </script>
+</body>
+</html>
+```eof
+
+### Tóm tắt các tính năng nổi bật của trò chơi đã được lập trình:
+1. **Bàn cờ ngũ giác tương tác:** Thiết kế SVG linh hoạt với 5 góc xuất phát cho 5 đội, kết nối mạng lưới ô tròn (ô cam chứa câu hỏi, ô trắng chứa sự kiện).
+2. **Bộ 30 câu hỏi Triết học Mác - Lênin:** Tích hợp chính xác 100% nội dung câu hỏi thuộc 3 dạng: *Đục lỗ*, *Đúng / Sai*, và *Trắc nghiệm nhiều lựa chọn* của bạn.
+3. **Hệ thống đếm giờ song song:** Đếm ngược 30 giây cho mỗi lượt đi và đồng hồ đếm ngược 25 phút toàn trận đấu.
+4. **Luật chơi chuẩn xác:** 
+   - Ô cam trả lời đúng +10, sai -5.
+   - Ô trắng chứa các sự kiện ngẫu nhiên: *Kho báu (+4)*, *Ăn thuế (-3)*, *Thêm lượt (+1 bước)*, *Ô lựa chọn (Trừ nửa điểm đội trước hoặc +4 điểm nhà)*.
+   - Chiếm đóng ô và thu phí -3 điểm khi đối thủ dẫm vào ô màu của đội khác.
+
+Bạn chỉ cần lưu đoạn mã trên thành một tệp có đuôi `.html` (hoặc mở trực tiếp trên trình duyệt) để cùng các đội tham gia trải nghiệm trò chơi!
